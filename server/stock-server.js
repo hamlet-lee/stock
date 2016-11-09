@@ -163,7 +163,7 @@ function updateDaily(code, backDays = 180){
   }
 }
 
-new CronJob('0 0 18 * * * 1-5', function() {
+new CronJob('0 0 18 * * 1-5', function() {
   console.log('update daily status');
   
   pool.query( "SELECT DISTINCT(code) AS code FROM tbl_daily d", (err, outerRows) => {
@@ -173,11 +173,34 @@ new CronJob('0 0 18 * * * 1-5', function() {
 }, null, true, 'Asia/Shanghai');
 
 
+function addDailyByName(name, res){
+  pool.query("SELECT code from tbl_code where name =?", [name], (err, sqlres) =>{
+    if( sqlres.length > 0) {
+      updateDaily(sqlres[0].code); 
+      res && res.end("OK");
+    }else{
+      res && res.end("ERROR");
+    }
+  });
+}
+
+app.get('/addDailyByName/:name', 
+          function (req, res) {
+            
+          }
+   );
+
 app.get('/addDaily/:code', 
           function (req, res) {
             var code = req.params.code;
-            updateDaily(code); 
-            res.end("OK");
+            if( code.match(/^\d+$/) ) {
+              console.log("by code");
+              updateDaily(code); 
+              res.end("OK");  
+            }else{
+              console.log("by name");
+              addDailyByName(code, res);
+            }
           }
    );
 

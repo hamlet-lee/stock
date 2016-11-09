@@ -56,6 +56,15 @@ $(function(){
 			  alert(err);
 			}
 		});
+
+  $("#btnAdd").on("click", (e) => {
+    let code = $("#stkCode").val();
+    $.ajax({
+      url: '/addDaily/' + code,
+      success: () => alert('done'),
+      error: (e) => alert(e)
+    });
+  });
 });
 
 window.onerror = function(message, source, lineno, colno, error) {
