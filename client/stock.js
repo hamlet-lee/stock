@@ -20,7 +20,7 @@ $(function(){
     
     var poss = [];
     data.forEach( (d) => {
-      let $n = $(_.template('<div title="<%- d.code%>"class="stock-block"><%- d.name%></div>', {d}) );
+      let $n = $(_.template('<div data-code="<%- d.code%>" title="<%- d.code%>" class="stock-block"><a class="stock-href" href="#"><%- d.name%></a></div>', {d}) );
       
       let ww = 300;
       let hh = 600;
@@ -56,13 +56,33 @@ $(function(){
 			  alert(err);
 			}
 		});
-
+  $("body").on("click",".stock-href", (e) => {
+    let code = $(e.target).closest(".stock-block").data("code");
+    console.log("code: " + code);
+    $.ajax({
+      url: "/memo/"+code,
+      success: (data) => {
+        console.log(data);
+        var d = JSON.parse(data);
+        var memos = d.memos;
+        var name = d.name;
+        $("#memo").empty();
+        $("#memo").append( $("<div>").text(name) );
+        memos.forEach( (memo) => {
+          $("#memo").append(memo.author + ":" + memo.memo);
+        });
+      },
+      error: (e) => alert(JSON.stringify(e))
+    })
+  });
   $("#btnAdd").on("click", (e) => {
+    e.stopPropagation();
+    e.preventDefault();
     let code = $("#stkCode").val();
     $.ajax({
       url: '/addDaily/' + code,
       success: () => alert('done'),
-      error: (e) => alert(e)
+      error: (e) => alert(JSON.stringify(e))
     });
   });
 });

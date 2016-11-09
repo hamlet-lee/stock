@@ -184,6 +184,20 @@ function addDailyByName(name, res){
   });
 }
 
+app.get('/memo/:code', (req,res) => {
+  let code = req.params.code;
+  pool.query("select name, code from tbl_code where code=?", [code], (sqlerr1, sqlres1) =>{
+    pool.query("select * from tbl_memo where code = ?", [code], (sqlerr, sqlres) =>{
+      res.end(JSON.stringify({
+       code,
+       name: sqlres1[0].name,
+       memos: sqlres
+      }));
+    });
+  });
+  
+});
+
 app.get('/addDailyByName/:name', 
           function (req, res) {
             
