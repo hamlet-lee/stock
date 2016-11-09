@@ -195,14 +195,27 @@ app.get('/memo/:code', (req,res) => {
       }));
     });
   });
-  
+});
+
+app.put('/memo/:code', (req,res) => {
+  let code = req.params.code;
+  let memo = req.body.memo;
+  console.log(`code=${code} memo=${memo}`);
+  pool.query("insert into tbl_memo (code, memo) values (?,?)", [code, memo], (sqlerr, sqlres) =>{
+    if( sqlerr == undefined) {
+      res.end("done");  
+    }else{
+      res.end(JSON.stringify(sqlerr));
+    }
+  });
+
 });
 
 app.get('/addDailyByName/:name', 
           function (req, res) {
-            
+            addDailyByName(req.params.name);
           }
-   );
+);
 
 app.get('/addDaily/:code', 
           function (req, res) {

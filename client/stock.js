@@ -3,7 +3,7 @@ $(function(){
   function foundConflict(poss, p){
     let found = false;
     poss.forEach( (pos) => {
-      if( Math.abs( pos.left - p.left ) < 10 && Math.abs(pos.top - p.top ) < 10 ){
+      if( Math.abs( pos.left - p.left ) < 15 && Math.abs(pos.top - p.top ) < 25 ){
         found = true;
       }
     });
@@ -20,7 +20,7 @@ $(function(){
     
     var poss = [];
     data.forEach( (d) => {
-      let $n = $(_.template('<div data-code="<%- d.code%>" title="<%- d.code%>" class="stock-block"><a class="stock-href" href="#"><%- d.name%></a></div>', {d}) );
+      let $n = $(_.template('<div data-code="<%- d.code%>" title="<%- d.code%>" class="stock-block"><a class="stock-href" href="#"><%- d.name%> (<%- d.code%>)</a></div>', {d}) );
       
       let ww = 300;
       let hh = 600;
@@ -32,7 +32,15 @@ $(function(){
       poss.push({left, top});
       $n.css({ left, top });
       if( d.sign < 0 ){
-        $n.css("border-color","blue");
+        $n.css({
+          "border-color":"green",
+          "border-width":"5px"
+        });
+      }else{
+        $n.css({
+          "border-color":"red",
+          "border-width":"5px"
+        });
       }
       let k = Math.floor(255 - 255 * (d.volLevel - minVol) / (maxVol - minVol));
       let c = "rgb("+k+",255,255)";
@@ -56,6 +64,17 @@ $(function(){
 			  alert(err);
 			}
 		});
+  $("body").on("click",".btnAddMemo", (e) =>{
+    let code = $(e.target).closest(".add-memo").data("code");
+    let memo = $(e.target).closest(".add-memo").find(".myMemo").val();
+    $.ajax({
+      url: "/memo/" + code,
+      method: "put",
+      data: {code, memo},
+      success: () => alert('done'),
+      error: (e) => alert( JSON.stringify(e))
+    });
+  });
   $("body").on("click",".stock-href", (e) => {
     let code = $(e.target).closest(".stock-block").data("code");
     console.log("code: " + code);
@@ -67,10 +86,14 @@ $(function(){
         var memos = d.memos;
         var name = d.name;
         $("#memo").empty();
-        $("#memo").append( $("<div>").text(name) );
+        $("#memo").append( $(_.template('<div><%- name %> (<%- code %>)</div>',{name, code}) ) );
         memos.forEach( (memo) => {
-          $("#memo").append(memo.author + ":" + memo.memo);
+          $("#memo").append(_.template('<div>[<%- memo.author%>] <%- memo.memo %></div>', {memo}));
         });
+        var h = _.template('<div data-code="<%- code%>" class="add-memo"> <input type="text" class="myMemo"/><button class="btnAddMemo">添加备注</button> </div>',{code});
+        $("#memo").append(
+          $(h)
+        );
       },
       error: (e) => alert(JSON.stringify(e))
     })
