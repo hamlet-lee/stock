@@ -1,0 +1,11 @@
+{
+  "pool": {
+    "connectionLimit": 10,
+    "host"     : "localhost",
+    "user"     : "",
+    "password" : "",
+    "database" : "stock",
+    "charset" : "UTF8_GENERAL_CI"
+  },
+  "stockListUrl": "http://.../stocklist.html",  "stockDailyUrl": "http://.../{code}?from={start_date}&to={end_date}" 
+}
