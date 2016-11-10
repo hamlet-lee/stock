@@ -7,6 +7,7 @@ var CronJob = require('cron').CronJob;
 var format = require('string-template');
 var session = require('express-session');
 var crypto = require('crypto');
+var MySQLStore = require('express-mysql-session')(session);
 
 var jsonfile = require('jsonfile')
 var file = 'conf.json'
@@ -20,7 +21,9 @@ var pool = mysql.createPool( poolSpec );
 var express = require('express');
 var app = express();
 
-app.use(session( conf.sessionConf ));
+var sessionConf = conf.sessionConf;
+sessionConf.store = new MySQLStore({}, pool);
+app.use(session( sessionConf ));
 
 // Authentication and Authorization Middleware
 var auth = function(req, res, next) {
