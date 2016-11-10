@@ -28,7 +28,7 @@ $(function(){
 
     var poss = [];
     data.forEach( (d) => {
-      let $n = $(_.template('<div data-code="<%- d.code%>" title="<%- d.code%>" class="stock-block"><a class="stock-href" href="#"><%- d.name%> (<%- d.code%>)</a></div>', {d}) );
+      let $n = $(_.template('<div data-code="<%- d.code%>" title="<%- d.code%> <%- d.sign<0? "距最高点: " + d.toHigh +"天": "距最低点：" + d.toLow + "天" %>" class="stock-block"><a class="stock-href" href="#"><%- d.name%> (<%- d.code%>)</a></div>', {d}) );
       
       let left = (d.sign<0? d.toHigh*dayUnit: (d.toLow+maxToHigh)*dayUnit) ;
       //let left = ww + d.sign * d.level * ww ;
