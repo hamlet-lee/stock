@@ -17,14 +17,21 @@ $(function(){
       maxVol = Math.max(maxVol, data[ i ].volLevel);
       minVol = Math.min(minVol, data[ i ].volLevel);
     }
+
+    let ww = $("#screen").width()/2;
+    let hh = $("#screen").height();
+
     
+    let maxToLow = Math.max.apply(null, data.map( (x) => x.toLow ));
+    let maxToHigh = Math.max.apply(null, data.map( (x) => x.toHigh ));
+    let dayUnit = $("#screen").width() / (maxToLow + maxToHigh);
+
     var poss = [];
     data.forEach( (d) => {
       let $n = $(_.template('<div data-code="<%- d.code%>" title="<%- d.code%>" class="stock-block"><a class="stock-href" href="#"><%- d.name%> (<%- d.code%>)</a></div>', {d}) );
       
-      let ww = 300;
-      let hh = 600;
-      let left = ww + d.sign * d.level * ww ;
+      let left = (d.sign<0? d.toHigh*dayUnit: (d.toLow+maxToHigh)*dayUnit) ;
+      //let left = ww + d.sign * d.level * ww ;
       let top = hh - d.level * hh;
       while( foundConflict(poss, {left, top}) ){
         left += 100;
@@ -51,19 +58,46 @@ $(function(){
     $screen.append();
   }
 
+  function drawLatestMemo(data){
+    $("#latest").empty();
+    
+    $("#latest").append( $(_.template('<div class="h2">最新备注</div>',{}) ) );
+    data.forEach( (memo) => {
+      $("#latest").append(_.template('<div class="memo-item"><p class="stock-memo-title"><%- memo.name%>(<%- memo.code %>)<p> [<span style="color:<%- memo.color%>"><%- memo.author%></span>] <%- memo.memo %> - <%- new Date(memo.ts).format("yyyy-MM-dd hh:mm:ss") %></div>', {memo}));
+    });
+
+    data.forEach( d =>{
+
+    });
+  }
 	$.ajax({
-			url: "/allData",
-			method: "GET",
-			contentType: 'application/json',
-			success: function(res) {
-        console.log(res);
-        draw(JSON.parse(res));
-			},
-			error: function(xhr, status, error) {
-			  var err = xhr.responseText;
-			  alert(err);
-			}
-		});
+		url: "/allData",
+		method: "GET",
+		contentType: 'application/json',
+		success: function(res) {
+      console.log(res);
+      draw(JSON.parse(res));
+		},
+		error: function(xhr, status, error) {
+		  var err = xhr.responseText;
+		  alert(err);
+		}
+	});
+
+  $.ajax({
+    url: "/latestMemo",
+    method: "GET",
+    contentType: 'application/json',
+    success: function(res) {
+      console.log(res);
+      drawLatestMemo(JSON.parse(res));
+    },
+    error: function(xhr, status, error) {
+      var err = xhr.responseText;
+      alert(err);
+    }
+  });
+
   $("body").on("click",".btnAddMemo", (e) =>{
     let code = $(e.target).closest(".add-memo").data("code");
     let memo = $(e.target).closest(".add-memo").find(".myMemo").val();
@@ -86,11 +120,11 @@ $(function(){
         var memos = d.memos;
         var name = d.name;
         $("#memo").empty();
-        $("#memo").append( $(_.template('<div><%- name %> (<%- code %>)</div>',{name, code}) ) );
+        $("#memo").append( $(_.template('<div class="h2"><%- name %> (<%- code %>)</div>',{name, code}) ) );
         memos.forEach( (memo) => {
-          $("#memo").append(_.template('<div>[<%- memo.author%>] <%- memo.memo %></div>', {memo}));
+          $("#memo").append(_.template('<div class="memo-item">[<span style="color:<%- memo.color %>"><%- memo.author%></span>] <%- memo.memo %> - <%- new Date(memo.ts).format("yyyy-MM-dd hh:mm:ss") %></div>', {memo}));
         });
-        var h = _.template('<div data-code="<%- code%>" class="add-memo"> <input type="text" class="myMemo"/><button class="btnAddMemo">添加备注</button> </div>',{code});
+        var h = _.template('<div data-code="<%- code%>" class="add-memo"> <textarea type="text" class="myMemo"/><button class="btnAddMemo">添加备注</button> </div>',{code});
         $("#memo").append(
           $(h)
         );

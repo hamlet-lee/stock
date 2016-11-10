@@ -5,16 +5,8 @@ var request = require('request');
 var iconv = require('iconv-lite');
 var CronJob = require('cron').CronJob;
 var format = require('string-template');
-
-/* = mysql.createPool({
-  connectionLimit: 10,
-  host     : 'localhost',
-  user     : 'cake',
-  password : 'cakeisme',
-  database : 'cake',
-  charset : 'UTF8_GENERAL_CI'
-});
-*/
+var session = require('express-session');
+var crypto = require('crypto');
 
 var jsonfile = require('jsonfile')
 var file = 'conf.json'
@@ -27,6 +19,50 @@ var pool = mysql.createPool( poolSpec );
  
 var express = require('express');
 var app = express();
+
+app.use(session( conf.sessionConf ));
+
+// Authentication and Authorization Middleware
+var auth = function(req, res, next) {
+  if (req.session && req.session.user !== undefined)
+    return next();
+  else
+    return res.sendStatus(401);
+};
+
+function getHash(orig){
+  var md5sum = crypto.createHash('md5');
+  md5sum.update(orig);
+  var d = md5sum.digest('hex');
+  console.log(d);
+  return d;
+}
+
+//for create user
+app.get('/newUser', function(req,res) {
+  let username = req.query.username;
+  let password = req.query.password;
+  pool.query("insert into tbl_user (username, passhash) values (?,?)", [username, getHash(password)], (e,r) =>{
+    if( e ){
+      res.end("error " + JSON.stringify(e));
+    }else{
+      res.end("done");
+    }
+  });
+});
+
+
+// Logout endpoint
+app.get('/logout', function (req, res) {
+  req.session.destroy();
+  res.send("logout success!");
+});
+
+// // Get content endpoint
+// app.get('/content', auth, function (req, res) {
+//     res.send("You can only see this after you've logged in." + req.session.user);
+// });
+ 
 var fs = require("fs");
 
 var bodyParser = require('body-parser');
@@ -93,7 +129,61 @@ function processCodeList(body){
 //end();
 app.use(bodyParser.json()); // for parsing application/json
 app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
+
+
+// Login endpoint
+app.post('/login', function (req, res) {
+  console.log(req.body);
+  if (!req.body.username || !req.body.password) {
+    res.send('login failed');    
+  } else {
+    let {username, password, url } = req.body;
+    console.log("username=" + username + " password=" + password);
+    pool.query(
+      "select count(*) as cnt from tbl_user where username=? and passhash=?", 
+      [username, getHash(password)],
+        (e,r) =>{
+          if( e == undefined && r[0].cnt > 0) {
+            req.session.user = username;
+            if( url != undefined && url != "") {
+              res.redirect(url);
+            }else{
+              res.end("login success!");
+            }
+          }else{
+            res.end("login fail! e=" + JSON.stringify(e));
+          }  
+        }
+      );
+  }
+});
+
+//session
+// app.use(function (req, res, next) {
+//     var err = req.flash('error');
+//     var success = req.flash('success');
+//     res.locals({
+//         user:req.session.user,
+//         navSide:req.session.navSide,
+//         error:err.length ? err : null,
+//         success:success.length ? success : null
+//     });
+//     next();
+// });
+
+//登录拦截器
+var auth = function (req, res, next) {
+    var url = req.originalUrl;
+    if (url.indexOf("/login") < 0 && !req.session.user) {
+        return res.redirect("/login.html?url=" + encodeURIComponent(url));
+    }
+    next();
+};
+
+app.use(auth);
+
 app.use(express.static('client'));
+
 app.get('/updateStockList',
   function (req, res){
     let url = stockListUrl;
@@ -107,6 +197,7 @@ app.get('/updateStockList',
     res.end("done");
   }
 );
+
 app.get('/allData', 
   function (req, res){
     pool.query( "SELECT DISTINCT(CONCAT(c.code , ',', c.name)) AS code_name FROM tbl_daily d, tbl_code c WHERE c.code = d.code", function (err, outerRows){
@@ -134,7 +225,6 @@ app.get('/allData',
     });
   }
 );
-
 
 function updateDaily(code, backDays = 180){
   console.log(`updating code=${code}`);
@@ -187,7 +277,7 @@ function addDailyByName(name, res){
 app.get('/memo/:code', (req,res) => {
   let code = req.params.code;
   pool.query("select name, code from tbl_code where code=?", [code], (sqlerr1, sqlres1) =>{
-    pool.query("select * from tbl_memo where code = ?", [code], (sqlerr, sqlres) =>{
+    pool.query("select m.memo as memo, m.author as author, m.ts as ts, u.color as color from tbl_memo m, tbl_user u where m.code = ? and u.username = m.author order by m.ts desc", [code], (sqlerr, sqlres) =>{
       res.end(JSON.stringify({
        code,
        name: sqlres1[0].name,
@@ -197,11 +287,24 @@ app.get('/memo/:code', (req,res) => {
   });
 });
 
+app.get('/latestMemo', (req,res) => {
+  pool.query("select c.code as code, c.name as name,  m.memo as memo, m.ts as ts, m.author as author, u.color as color from tbl_memo m , tbl_code c, tbl_user u where u.username = m.author and m.code = c.code order by m.ts desc limit 10", (sqlerr, sqlres) =>{
+    if(sqlerr != undefined ) {
+      res.end(JSON.stringify(sqlerr));
+    }else{
+      res.end(JSON.stringify(
+       sqlres
+      ));
+    }
+  });
+});
+
 app.put('/memo/:code', (req,res) => {
   let code = req.params.code;
   let memo = req.body.memo;
+  let author = req.session.user;
   console.log(`code=${code} memo=${memo}`);
-  pool.query("insert into tbl_memo (code, memo) values (?,?)", [code, memo], (sqlerr, sqlres) =>{
+  pool.query("insert into tbl_memo (code, memo, author) values (?,?,?)", [code, memo, author], (sqlerr, sqlres) =>{
     if( sqlerr == undefined) {
       res.end("done");  
     }else{

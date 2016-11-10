@@ -12,7 +12,9 @@
   "dependencies": {
     "body-parser": "^1.15.2",
     "cron": "^1.1.1",
+    "crypto": "0.0.3",
     "express": "^4.14.0",
+    "express-session": "^1.14.2",
     "iconv-lite": "^0.4.13",
     "jsonfile": "^2.4.0",
     "multer": "^1.2.0",

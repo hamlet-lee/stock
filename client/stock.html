@@ -20,8 +20,12 @@
         #screen{
           border-style: solid;
           border-width: 1px;
-          width: 600px;
+          width: 95%;
           height: 600px;
+          position: relative;
+        }
+        #l{
+          flex: 1;
         }
         .inline{
           display: inline;
@@ -38,14 +42,39 @@
         #memo{
           border-style: solid;
         }
+        .myMemo{
+          width: 20em;
+          height: 4em;
+        }
+        #latest{
+          border-style: solid;
+          border-width: 1px;
+          border-color: black;
+          flex: 1;
+        }
+        #lr{
+          display: flex;
+        }
+        .stock-memo-title{
+          font-size: 2em;
+        }
+        .h2{
+          font-size: 3em;
+        }
 	    </style>
 	</head>
 	<body>
-    <div id="screen"></div>
-    <div id="memo"></div>
-		<div id="add">代码: 
+    <div id="add">代码: 
       <input id="stkCode" class="inline"/>
-      <button class="inline" id="btnAdd">添加</button></div>
+      <button class="inline" id="btnAdd">添加</button>
+    </div>
+    <div id="lr">
+      <div id="l">
+        <div id="screen"></div>
+        <div id="memo"></div>
+      </div>
+      <div id="latest"></div>
+    </div>
     <div id="all">
 			<!--script src="jquery-1.11.2.js"></script-->
 			<script src="http://lib.sinaapp.com/js/jquery/1.9.1/jquery-1.9.1.min.js"></script>
