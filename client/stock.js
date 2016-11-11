@@ -63,11 +63,44 @@ $(function(){
     
     $("#latest").append( $(_.template('<div class="h2">最新备注</div>',{}) ) );
     data.forEach( (memo) => {
-      $("#latest").append(_.template('<div class="memo-item"><p class="stock-memo-title"><%- memo.name%>(<%- memo.code %>)<p> [<span style="color:<%- memo.color%>"><%- memo.author%></span>] <%- memo.memo %> - <%- new Date(memo.ts).format("yyyy-MM-dd hh:mm:ss") %></div>', {memo}));
+      $("#latest").append(_.template('<div data-code="<%- memo.code%>"class="memo-item"><p class="stock-memo-title"><a class="latest-stock-href" href="#"><%- memo.name%>(<%- memo.code %>)</a><p> [<span style="color:<%- memo.color%>"><%- memo.author%></span>] <%- memo.memo %> - <%- new Date(memo.ts).format("yyyy-MM-dd hh:mm:ss") %></div>', {memo}));
     });
+  }
 
-    data.forEach( d =>{
+  function genWenCai(q){
+    return "http://www.iwencai.com/stockpick/search?w="+encodeURIComponent(q);
+  }
+  function showStockMemo(code){
+    $.ajax({
+      url: "/memo/"+code,
+      success: (data) => {
+        console.log(data);
+        var d = JSON.parse(data);
+        var memos = d.memos;
+        var name = d.name;
 
+        var wencaiUrls = {
+          "市盈率": genWenCai(code + " 市盈率"),
+          "市净率": genWenCai(code + " 市净率"),
+          "市销率": genWenCai(code + " 市销率"),
+          "基本情况": genWenCai(code),
+          "主力持仓": genWenCai(code + " 主力持仓")
+        };
+
+        $("#memo").empty();
+        $("#memo").append( $(_.template('<div class="h2"><%- name %> (<%- code %>) <a class="icon" href=<%- wencaiUrls["基本情况"]%>>基本情况</a> <a class="icon" href=<%- wencaiUrls["主力持仓"]%>>主力持仓</a> <a class="icon" href=<%- wencaiUrls["市盈率"]%>>市盈率</a> <a class="icon" href=<%- wencaiUrls["市净率"]%>>市净率</a> <a class="icon" href=<%- wencaiUrls["市销率"]%>>市销率</a> </div>',{name, code, wencaiUrls}) ) );
+        memos.forEach( (memo) => {
+          $("#memo").append(_.template('<div class="memo-item">[<span style="color:<%- memo.color %>"><%- memo.author%></span>] <%- memo.memo %> - <%- new Date(memo.ts).format("yyyy-MM-dd hh:mm:ss") %></div>', {memo}));
+        });
+        var h = _.template('<div data-code="<%- code%>" class="add-memo"> <textarea type="text" class="myMemo"/><button class="btnAddMemo">添加备注</button> </div>',{code});
+        $("#memo").append(
+          $(h)
+        );
+        $('html, body').animate({
+          scrollTop: $("#memo").offset().top,
+        }, 1000);
+      },
+      error: (e) => alert(JSON.stringify(e))
     });
   }
 	$.ajax({
@@ -112,26 +145,18 @@ $(function(){
   $("body").on("click",".stock-href", (e) => {
     let code = $(e.target).closest(".stock-block").data("code");
     console.log("code: " + code);
-    $.ajax({
-      url: "/memo/"+code,
-      success: (data) => {
-        console.log(data);
-        var d = JSON.parse(data);
-        var memos = d.memos;
-        var name = d.name;
-        $("#memo").empty();
-        $("#memo").append( $(_.template('<div class="h2"><%- name %> (<%- code %>)</div>',{name, code}) ) );
-        memos.forEach( (memo) => {
-          $("#memo").append(_.template('<div class="memo-item">[<span style="color:<%- memo.color %>"><%- memo.author%></span>] <%- memo.memo %> - <%- new Date(memo.ts).format("yyyy-MM-dd hh:mm:ss") %></div>', {memo}));
-        });
-        var h = _.template('<div data-code="<%- code%>" class="add-memo"> <textarea type="text" class="myMemo"/><button class="btnAddMemo">添加备注</button> </div>',{code});
-        $("#memo").append(
-          $(h)
-        );
-      },
-      error: (e) => alert(JSON.stringify(e))
-    })
+    e.preventDefault();
+    showStockMemo(code);
   });
+  
+  $("body").on("click",".latest-stock-href", (e)=>{
+    let code = $(e.target).closest(".memo-item").data("code");
+    e.preventDefault();
+    console.log("code: " + code);
+    e.preventDefault();
+    showStockMemo(code);
+  });
+
   $("#btnAdd").on("click", (e) => {
     e.stopPropagation();
     e.preventDefault();

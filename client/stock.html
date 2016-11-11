@@ -9,8 +9,19 @@
 	    		/*width: 4cm;*/
 	    		font-size: 10px;
 	    		padding-top: 2em;
-	    		text-align: center;
+	    		text-align: left;
 	    	}
+        .icon{
+          font-size: 0.5em;
+        }
+        #latest a:link, #latest a:visited{
+          color: #541a06;
+          text-decoration: none;
+        }
+        #latest a:hover{
+          color: red;
+          text-decoration: none;
+        }
         .stock-block{
           border-style: solid;
           border-width: 1px;
@@ -20,18 +31,17 @@
         #screen{
           border-style: solid;
           border-width: 1px;
-          width: 95%;
-          height: 600px;
+          width: 60em;
+          height: 60em;
           position: relative;
         }
         #l{
-          flex: 1;
         }
         .inline{
           display: inline;
         }
         #add{
-          width: 300px;
+          
         }
         .stock-block :link{
           color: black;
@@ -41,6 +51,7 @@
         }
         #memo{
           border-style: solid;
+          max-width: 50em;
         }
         .myMemo{
           width: 20em;
@@ -50,10 +61,13 @@
           border-style: solid;
           border-width: 1px;
           border-color: black;
-          flex: 1;
+          width: 40em;
+          height: 60em;
+          overflow: auto;
         }
         #lr{
           display: flex;
+          flex-wrap: wrap;
         }
         .stock-memo-title{
           font-size: 2em;
@@ -64,16 +78,15 @@
 	    </style>
 	</head>
 	<body>
-    <div id="add">代码: 
+    <p id="add">代码: 
       <input id="stkCode" class="inline"/>
       <button class="inline" id="btnAdd">添加</button>
-    </div>
+      | 有用的链接: <a href="http://www.iwencai.com/">智能选股</a>
+    </p>
     <div id="lr">
-      <div id="l">
-        <div id="screen"></div>
-        <div id="memo"></div>
-      </div>
+      <div id="screen"></div>
       <div id="latest"></div>
+      <div id="memo"></div>
     </div>
     <div id="all">
 			<!--script src="jquery-1.11.2.js"></script-->
