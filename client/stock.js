@@ -71,6 +71,7 @@ $(function(){
     return "http://www.iwencai.com/stockpick/search?w="+encodeURIComponent(q);
   }
   function showStockMemo(code){
+    $("#memo").fadeOut();
     $.ajax({
       url: "/memo/"+code,
       success: (data) => {
@@ -96,6 +97,7 @@ $(function(){
         $("#memo").append(
           $(h)
         );
+        $("#memo").fadeIn();
         $('html, body').animate({
           scrollTop: $("#memo").offset().top,
         }, 1000);
