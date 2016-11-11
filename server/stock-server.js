@@ -244,19 +244,20 @@ function updateDaily(code, backDays = 180){
     request(url, function (error, response, body) {
                   if (!error && response.statusCode == 200) {
                     var d = JSON.parse(body);
-                    d.data.forEach(
-                      function(t){
-                        var sql = "insert into tbl_daily (code, date, high, close, low, volume, amount) values (?, ?, ?, ? ,? ,? ,?)";
-                        pool.query(sql, [code, t.date, t.high * 100, t.close * 100, t.low * 100, t.volume, t.amount ]);
-                    });
+                    if( d.data ){
+                      d.data.forEach(
+                        function(t){
+                          var sql = "insert into tbl_daily (code, date, high, close, low, volume, amount) values (?, ?, ?, ? ,? ,? ,?)";
+                          pool.query(sql, [code, t.date, t.high * 100, t.close * 100, t.low * 100, t.volume, t.amount ]);
+                      });
+                    }                  }
                     console.log(body);
-                  }
                 }
     );
   }
 }
 
-new CronJob('0 0 18 * * 1-5', function() {
+new CronJob('0 7 18 * * 1-5', function() {
   console.log('update daily status');
   
   pool.query( "SELECT DISTINCT(code) AS code FROM tbl_daily d", (err, outerRows) => {
