@@ -1,0 +1,104 @@
+body {
+  /*width: 4cm;*/
+  font-size: 10px;
+  padding-top: 2em;
+  text-align: left;
+  font-family: "微软雅黑"
+}
+.memo-links{
+  font-size: 1em;
+}
+.memo-links a:link, .memo-links a:visited{
+  color: #c36429;
+  text-decoration: none;
+}
+.memo-links a:hover{
+  color: #c36429;
+  text-decoration: underline;
+}
+
+#latest a:link, #latest a:visited{
+  /*color: #541a06;*/
+  color: #319e36;
+  text-decoration: none;
+}
+#latest a:hover{
+  color: red;
+  text-decoration: underline;
+}
+.stock-block{
+  font-family: "宋体";
+  border-style: solid;
+  border-width: 1px;
+  width: 4em;
+  position: absolute;
+}
+#screen{
+  border-style: solid;
+  border-width: 1px;
+  width: 60em;
+  height: 60em;
+  position: relative;
+}
+#l{
+}
+.inline{
+  display: inline;
+}
+#add{
+  
+}
+.stock-block :link{
+  color: black;
+  text-decoration: none;
+}
+.stock-block :hover{
+  color: red;
+  text-decoration: underline;
+}
+.stock-block :visited{
+  color: black;
+}
+#memo{
+  /*border-style: solid;*/
+  min-height: 80em;
+  font-size: 1.5em;
+}
+.myMemo{
+  width: 20em;
+  height: 4em;
+}
+#latest{
+  border-style: solid;
+  border-width: 1px;
+  border-color: black;
+  width: 40em;
+  /*height: 60em;*/
+  /*overflow: auto;*/
+}
+#lr{
+  display: flex;
+  flex-wrap: wrap;
+}
+.stock-memo-title{
+  font-size: 2em;
+}
+.h2{
+  font-size: 1.5em;
+}
+.latest-stock-href {
+  margin-left: 1em;
+}
+.memo-author{
+  /*width: 4em;*/
+  /*text-align: center;*/
+  display: inline-block;
+}
+.memo-date{
+  font-size: 0.8em;
+  float: right;
+}
+
+.memo-colon{
+  color: blue;
+}
