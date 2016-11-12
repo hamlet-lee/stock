@@ -28,7 +28,7 @@ $(function(){
 
     var poss = [];
     data.forEach( (d) => {
-      let $n = $(_.template('<div data-code="<%- d.code%>" title="<%- d.code%> <%- d.sign<0? "距最高点: " + d.toHigh +"天": "距最低点：" + d.toLow + "天" %>" class="stock-block"><a class="stock-href" href="#"><%- d.name%> (<%- d.code%>)</a></div>', {d}) );
+      let $n = $(_.template('<div data-code="<%- d.code%>" title="<%- d.code%> <%- d.sign<0? "距最高点: " + d.toHigh +"天": "距最低点：" + d.toLow + "天" %>" class="stock-block"><a class="stock-href" href="#"><%- d.name%> <%- d.code%></a></div>', {d}) );
       
       let left = (d.sign<0? d.toHigh*dayUnit: (d.toLow+maxToHigh)*dayUnit) ;
       //let left = ww + d.sign * d.level * ww ;
@@ -41,12 +41,12 @@ $(function(){
       if( d.sign < 0 ){
         $n.css({
           "border-color":"green",
-          "border-width":"5px"
+          "border-width":"1px"
         });
       }else{
         $n.css({
           "border-color":"red",
-          "border-width":"5px"
+          "border-width":"1px"
         });
       }
       let k = Math.floor(255 - 255 * (d.volLevel - minVol) / (maxVol - minVol));
@@ -89,7 +89,7 @@ $(function(){
         };
 
         $("#memo").empty();
-        $("#memo").append( $(_.template('<div class="h2"><%- name %> (<%- code %>) <a class="icon" href=<%- wencaiUrls["基本情况"]%>>基本情况</a> <a class="icon" href=<%- wencaiUrls["主力持仓"]%>>主力持仓</a> <a class="icon" href=<%- wencaiUrls["市盈率"]%>>市盈率</a> <a class="icon" href=<%- wencaiUrls["市净率"]%>>市净率</a> <a class="icon" href=<%- wencaiUrls["市销率"]%>>市销率</a> </div>',{name, code, wencaiUrls}) ) );
+        $("#memo").append( $(_.template('<p><a href="#">返回</a></p><p class="h2"><%- name %> (<%- code %>) </p><p> <a class="icon" href=<%- wencaiUrls["基本情况"]%>>基本情况</a> <a class="icon" href=<%- wencaiUrls["主力持仓"]%>>主力持仓</a> <a class="icon" href=<%- wencaiUrls["市盈率"]%>>市盈率</a> <a class="icon" href=<%- wencaiUrls["市净率"]%>>市净率</a> <a class="icon" href=<%- wencaiUrls["市销率"]%>>市销率</a> </p>',{name, code, wencaiUrls}) ) );
         memos.forEach( (memo) => {
           $("#memo").append(_.template('<div class="memo-item">[<span style="color:<%- memo.color %>"><%- memo.author%></span>] <%- memo.memo %> - <%- new Date(memo.ts).format("yyyy-MM-dd hh:mm:ss") %></div>', {memo}));
         });
@@ -100,7 +100,7 @@ $(function(){
         $("#memo").fadeIn();
         $('html, body').animate({
           scrollTop: $("#memo").offset().top,
-        }, 1000);
+        }, 0);
       },
       error: (e) => alert(JSON.stringify(e))
     });
