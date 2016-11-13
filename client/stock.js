@@ -28,7 +28,7 @@ $(function(){
 
     var poss = [];
     data.forEach( (d) => {
-      let $n = $(_.template('<div data-code="<%- d.code%>" title="<%- d.code%> <%- d.sign<0? "距最高点: " + d.toHigh +"天": "距最低点：" + d.toLow + "天" %>" class="stock-block"><a class="stock-href" href="#"><%- d.name%> <%- d.code%></a></div>', {d}) );
+      let $n = $(_.template(templates.stockBlock, {d}) );
       
       let left = (d.sign<0? d.toHigh*dayUnit: (d.toLow+maxToHigh)*dayUnit) ;
       //let left = ww + d.sign * d.level * ww ;
@@ -43,12 +43,20 @@ $(function(){
           "border-color":"green",
           "border-width":"1px"
         });
+        $n.find(".volBarLow").css("background-color", "green");
       }else{
         $n.css({
           "border-color":"red",
           "border-width":"1px"
         });
+        $n.find(".volBarLow").css("background-color", "red");
       }
+      
+      let lowPart = (d.volLevel - d.minVolLevel) / (d.maxVolLevel - d.minVolLevel);
+      let highPart = 1 - lowPart;
+      $n.find(".volBarHigh").css("flex", Math.round(highPart * 10));
+      $n.find(".volBarLow").css("flex", Math.round(lowPart * 10));
+
       let k = Math.floor(255 - 255 * (d.volLevel - minVol) / (maxVol - minVol));
       let c = "rgb("+k+",255,255)";
       console.log(c);
@@ -61,15 +69,9 @@ $(function(){
   function drawLatestMemo(data){
     $("#latest").empty();
     
-    $("#latest").append( $(_.template('<div class="h2">最新备注</div>',{}) ) );
+    $("#latest").append( $(_.template(templates.latestHead,{}) ) );
     data.forEach( (memo) => {
-      $("#latest").append(_.template(
-        '<div data-code="<%- memo.code%>"class="memo-item">' +
-        '<p class="stock-memo-title">' +
-          '<span> [<span style="color:<%- memo.color%>"><%- memo.author%></span>] <%- memo.memo %> - <%- new Date(memo.ts).format("yyyy-MM-dd hh:mm:ss") %></span>' +
-          '<a class="latest-stock-href" href="#"><%- memo.name%>(<%- memo.code %>)</a>' +
-        '</p>'
-      , {memo}));
+      $("#latest").append(_.template(templates.latestItem, {memo}));
     });
   }
 
@@ -95,9 +97,9 @@ $(function(){
         };
 
         $("#memo").empty();
-        $("#memo").append( $(_.template('<p><a href="#">返回</a></p><p class="h2"><%- name %> (<%- code %>) </p><p class="memo-links"> <a class="icon" href=<%- wencaiUrls["基本情况"]%>>基本情况</a> <a class="icon" href=<%- wencaiUrls["主力持仓"]%>>主力持仓</a> <a class="icon" href=<%- wencaiUrls["市盈率"]%>>市盈率</a> <a class="icon" href=<%- wencaiUrls["市净率"]%>>市净率</a> <a class="icon" href=<%- wencaiUrls["市销率"]%>>市销率</a> </p>',{name, code, wencaiUrls}) ) );
+        $("#memo").append( $(_.template(templates.stockMemoHead,{name, code, wencaiUrls}) ) );
         memos.forEach( (memo) => {
-          $("#memo").append(_.template('<div class="memo-item"><span class="memo-author" style="color:<%- memo.color %>"><%- memo.author%>：</span> <%- memo.memo %> <span class="memo-date"><%- new Date(memo.ts).format("yyyy-MM-dd hh:mm:ss") %></span></div>', {memo}));
+          $("#memo").append(_.template(templates.stockMemoItem, {memo}));
         });
         var h = _.template('<div data-code="<%- code%>" class="add-memo"> <textarea type="text" class="myMemo"/><button class="btnAddMemo">添加备注</button> </div>',{code});
         $("#memo").append(

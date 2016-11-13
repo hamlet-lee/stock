@@ -78,9 +78,14 @@ function getDate(now){
 
 function genStk( code, rows ){
   //console.log(`code=${code}`);
+  let maxVol = Math.max.apply(null, rows.map( r => r.volume ));
   let high = Math.max.apply(null, rows.map( r => r.high ));
   //console.log(`high=${high}`);
+
+  let minVol = Math.min.apply(null, rows.map( r => r.volume) );
   let low = Math.min.apply(null, rows.map( r => r.low) );
+  
+  let curVol = rows[rows.length - 1].close;
   let cur = rows[rows.length - 1].close;
   
   let highPos = rows.length - 1;
@@ -115,6 +120,8 @@ function genStk( code, rows ){
     toLow,
     level: (cur - low) / (high - low),
     volLevel,
+    maxVolLevel: maxVol / avgVol,
+    minVolLevel: minVol / avgVol,
     sign: (toHigh > toLow ? 1: -1)
   };
 }

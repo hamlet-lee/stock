@@ -30,8 +30,10 @@ body {
   font-family: "宋体";
   border-style: solid;
   border-width: 1px;
-  width: 4em;
+  width: 4.5em;
   position: absolute;
+  display: flex;
+  align-items: stretch;
 }
 #screen{
   border-style: solid;
@@ -72,16 +74,18 @@ body {
   border-style: solid;
   border-width: 1px;
   border-color: black;
-  width: 40em;
+  width: 20em;
+  font-size: 2em;
   /*height: 60em;*/
   /*overflow: auto;*/
 }
+
 #lr{
   display: flex;
   flex-wrap: wrap;
 }
-.stock-memo-title{
-  font-size: 2em;
+.latest-memo-item{
+
 }
 .h2{
   font-size: 1.5em;
@@ -101,4 +105,22 @@ body {
 
 .memo-colon{
   color: blue;
+}
+
+.volBarWrap{
+  display: inline-flex;
+  flex-direction: column;
+  /*position: flex;*/
+  width: 0.5em;
+  background-color: yellow;
+}
+
+.volBarHigh{
+  /*flex:1 ;*/
+  background-color: white;
+}
+
+.volBarLow{
+  /*flex:1 ;*/
+  background-color: black;
 }
