@@ -28,10 +28,11 @@ templates["latestHead"] = [
 
 templates["latestItem"] = [
         '<div data-code="<%- memo.code%>" class="latest-memo-item">',
-        '<p class="latest-memo-item">',
-          '<span> [<span style="color:<%- memo.color%>"><%- memo.author%></span>] <%- memo.memo %> - <%- new Date(memo.ts).format("yyyy-MM-dd hh:mm:ss") %></span>',
-          '<a class="latest-stock-href" href="#"><%- memo.name%>(<%- memo.code %>)</a>',
-        '</p>'
+          '<p>',
+            '<span> [<span style="color:<%- memo.color%>"><%- memo.author%></span>] <%- memo.memo %> - <%- new Date(memo.ts).format("yyyy-MM-dd hh:mm:ss") %></span>',
+            '<a class="latest-stock-href" href="#"><%- memo.name%>(<%- memo.code %>)</a>',
+          '</p>',
+        '</div>'
 ].join("\n");
 
 templates["stockBlock"] = [
