@@ -100,7 +100,8 @@ body {
 }
 .memo-date{
   font-size: 0.8em;
-  float: right;
+  color: gray;
+  /*display: block;*/
 }
 
 .memo-colon{
