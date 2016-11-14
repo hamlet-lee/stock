@@ -160,7 +160,7 @@ $(function(){
   });
   
   $("body").on("click",".latest-stock-href", (e)=>{
-    let code = $(e.target).closest(".memo-item").data("code");
+    let code = $(e.target).closest(".latest-memo-item").data("code");
     e.preventDefault();
     console.log("code: " + code);
     e.preventDefault();
