@@ -213,10 +213,13 @@ app.get('/allData',
     pool.query( "SELECT DISTINCT(CONCAT(c.code , ',', c.name)) AS code_name FROM tbl_daily d, tbl_code c WHERE c.code = d.code", function (err, outerRows){
       let retList = [];
       let processed = 0;
+      var now = new Date().getTime();
+      var dt = getDate(now - 1000 * 60 * 60 * 24 * 180);  //half year
+      console.log("from dt = " + dt);
       outerRows.forEach( row => {
         let [code,name] = row.code_name.split(",");
-        pool.query( "select high, low, close, volume from tbl_daily where code = ? order by date asc", 
-                    [ code ],
+        pool.query( "select high, low, close, volume from tbl_daily where code = ? and date > ? order by date asc", 
+                    [ code, dt ],
                     (err, rows) => {
                       //console.log(err);
                       //console.log(rows);
