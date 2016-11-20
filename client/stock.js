@@ -106,6 +106,21 @@ $(function(){
           $(h)
         );
         $("#memo").fadeIn();
+        let $kchart = $("#memo").find(".kchart");
+
+        $.ajax({
+          url: "/daily/" + code,
+          method: "GET",
+          contentType: 'application/json',
+          success: (r) => {
+            var res = JSON.parse(r);
+            var dtList = _.map(res,  r => r.date);
+            var kList = _.map(res, r => [r.open / 100, r.close / 100, r.low / 100, r.high / 100] );
+            var amountList = _.map(res, r => r.amount);
+            kchart($kchart[0], name + " " + code, dtList, kList, amountList);
+          }
+        })
+
         $('html, body').animate({
           scrollTop: $("#memo").offset().top,
         }, 0);
@@ -178,6 +193,7 @@ $(function(){
     });
   });
 });
+
 
 window.onerror = function(message, source, lineno, colno, error) {
         alert("line" + lineno+ " " + message);

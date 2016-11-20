@@ -5,6 +5,7 @@ templates["stockMemoHead"] = [
   '<a href="#">返回</a>',
   '</p>',
   '<p class="h2"><%- name %> (<%- code %>) </p>',
+  '<p class="kchart"></p>',
   '<p class="memo-links">',
     '<a class="icon" href=<%- wencaiUrls["基本情况"]%>>基本情况</a>',
     '<a class="icon" href=<%- wencaiUrls["主力持仓"]%>>主力持仓</a>',

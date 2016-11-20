@@ -257,8 +257,16 @@ function updateDaily(code, backDays = 180){
                     if( d.data ){
                       d.data.forEach(
                         function(t){
-                          var sql = "insert into tbl_daily (code, date, high, close, low, volume, amount) values (?, ?, ?, ? ,? ,? ,?)";
-                          pool.query(sql, [code, t.date, t.high * 100, t.close * 100, t.low * 100, t.volume, t.amount ]);
+                          var sql = "insert into tbl_daily (code, date, high, low, open, close, volume, amount) values (?, ?, ?, ? ,? ,? , ?, ?)";
+                          pool.query(sql, [code, t.date, t.high * 100, t.low * 100, t.open * 100, t.close * 100, t.volume, t.amount], (serr, sres) =>{
+                            if( serr != null ) {
+                              //should update
+                              let sql_update = "update tbl_daily set high=?, low=?, open=?, close=?, volume=?, amount=? where code=? and date=? "
+                              pool.query(sql_update, [t.high * 100, t.low * 100, t.open * 100, t.close * 100,  t.volume, t.amount, code, t.date ]);
+                            }else{
+                              //nothing to do
+                            }
+                          });
                       });
                     }                  }
                     console.log(body);
@@ -267,11 +275,30 @@ function updateDaily(code, backDays = 180){
   }
 }
 
+app.get("/updateAll", (req, res) =>{
+  console.log('update long term daily status');
+  
+  //pool.query( "SELECT DISTINCT(code) AS code FROM tbl_daily d", (err, outerRows) => {
+  pool.query( "SELECT distinct(code) FROM stock.tbl_daily where open is null", (err, outerRows) => {
+    let hInterval = 0;
+    let pos = 0;
+    hInterval = setInterval( () => {
+      let code = outerRows[pos++].code;
+      console.log("updating code " + code);
+      updateDaily(code);
+      if( pos >= outerRows.length) {
+        clearInterval(hInterval);
+      }
+    }, 10000);
+  });
+});
+
 new CronJob('0 7 18 * * 1-5', function() {
+  let x = 5;
   console.log('update daily status');
   
   pool.query( "SELECT DISTINCT(code) AS code FROM tbl_daily d", (err, outerRows) => {
-    outerRows.forEach( r => updateDaily(r.code, 5) );
+    outerRows.forEach( r => updateDaily(r.code, x) );
   });
    
 }, null, true, 'Asia/Shanghai');
@@ -326,6 +353,22 @@ app.put('/memo/:code', (req,res) => {
     }
   });
 
+});
+
+app.get('/daily/:code', (req,res) => {
+  let code = req.params.code;
+  console.log(`code=${code}`);
+  var now = new Date().getTime();
+  var dt = getDate(now - 1000 * 60 * 60 * 24 * 180);  //half year
+  pool.query( "select date, open, close, low, high, volume, amount from tbl_daily where code = ? and date > ? order by date asc",
+    [ code, dt],
+    (sqlerr, sqlres) => {
+      if( sqlerr == undefined) {
+        res.end( JSON.stringify(sqlres) );    
+      }else{
+        res.end("error " + JSON.stringify(sqlerr) );
+      }
+    });
 });
 
 app.get('/addDailyByName/:name', 
