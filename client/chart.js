@@ -17,7 +17,7 @@ function kchart(elem, title, dtList, kList, amountList){
             }
         },
         legend: {
-            data:[title]
+            data:["价格","成交量"]
         },
         toolbox: {
             show : true,
@@ -33,7 +33,7 @@ function kchart(elem, title, dtList, kList, amountList){
         dataZoom : {
             show : true,
             realtime: true,
-            start : 40,
+            start : 50,
             end : 100
         },
         xAxis : [
@@ -53,38 +53,38 @@ function kchart(elem, title, dtList, kList, amountList){
                 name: "价格",
                 z: 1
             }
-            // ,
-            // {
-            //     type : 'value',
-            //     scale:true,
-            //     boundaryGap: [0.01, 0.01],
-            //     name: "成交量",
-            //     z: 0
-            // }
+            ,
+            {
+                type : 'value',
+                scale:true,
+                boundaryGap: [0.01, 0.01],
+                name: "成交量",
+                z: 0
+            }
         ],
         series : [
                 {
-                    name: title,
+                    name: "价格",
                     type: 'k',
                     data: kList // 开盘，收盘，最低，最高
                 }
-                // ,
-                // {
-                //     name: title + "成交量",
-                //     type: 'line',
-                //     data: amountList,
-                //     yAxisIndex: 1,
-                //     itemStyle: {
-                //     normal: {
-                //         color: 'gray',
-                //         label: {
-                //             //show: true,
-                //             //position: 'top',
-                //             //formatter: '{b}\n{c}'
-                //         }
-                //     }
-                // }
-                // }
+                ,
+                {
+                    name: "成交量",
+                    type: 'bar',
+                    data: amountList,
+                    yAxisIndex: 1,
+                    itemStyle: {
+                    normal: {
+                        color: 'gray',
+                        label: {
+                            //show: true,
+                            //position: 'top',
+                            //formatter: '{b}\n{c}'
+                        }
+                    }
+                }
+                }
         ]
     };
 

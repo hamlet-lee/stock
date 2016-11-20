@@ -84,7 +84,7 @@ $(function(){
       url: "/memo/"+code,
       success: (data) => {
         console.log(data);
-        var d = JSON.parse(data);
+        var d = data;
         var memos = d.memos;
         var name = d.name;
 
@@ -98,8 +98,13 @@ $(function(){
 
         $("#memo").empty();
         $("#memo").append( $(_.template(templates.stockMemoHead,{name, code, wencaiUrls}) ) );
+
         memos.forEach( (memo) => {
-          $("#memo").append(_.template(templates.stockMemoItem, {memo}));
+          if( memo.topTs == undefined ) {
+            $("#memo").append(_.template(templates.stockMemoItem, {memo}));
+          }else{
+            $("#memo").find(".topMemo").append(_.template(templates.stockMemoItem, {memo}));
+          }
         });
         var h = _.template('<div data-code="<%- code%>" class="add-memo"> <textarea type="text" class="myMemo"/><button class="btnAddMemo">添加备注</button> </div>',{code});
         $("#memo").append(
@@ -113,7 +118,7 @@ $(function(){
           method: "GET",
           contentType: 'application/json',
           success: (r) => {
-            var res = JSON.parse(r);
+            var res = r;
             var dtList = _.map(res,  r => r.date);
             var kList = _.map(res, r => [r.open / 100, r.close / 100, r.low / 100, r.high / 100] );
             var amountList = _.map(res, r => r.amount);
@@ -134,7 +139,7 @@ $(function(){
 		contentType: 'application/json',
 		success: function(res) {
       console.log(res);
-      draw(JSON.parse(res));
+      draw(res);
 		},
 		error: function(xhr, status, error) {
 		  var err = xhr.responseText;
@@ -148,12 +153,34 @@ $(function(){
     contentType: 'application/json',
     success: function(res) {
       console.log(res);
-      drawLatestMemo(JSON.parse(res));
+      drawLatestMemo(res);
     },
     error: function(xhr, status, error) {
       var err = xhr.responseText;
       alert(err);
     }
+  });
+
+  $("body").on("click", ".setTop", (e) =>{
+    e.preventDefault();
+    let id = $(e.target).closest(".memo-item").data("memoid");
+    $.ajax({
+      url: "/setTop/" + id,
+      method: "GET",
+      success: (e) => { alert("done"); }
+    });
+  });
+
+
+
+  $("body").on("click", ".unsetTop", (e) =>{
+    e.preventDefault();
+    let id = $(e.target).closest(".memo-item").data("memoid");
+    $.ajax({
+      url: "/unsetTop/" + id,
+      method: "GET",
+      success: (e) => { alert("done"); }
+    });
   });
 
   $("body").on("click",".btnAddMemo", (e) =>{

@@ -8,6 +8,8 @@ var format = require('string-template');
 var session = require('express-session');
 var crypto = require('crypto');
 var MySQLStore = require('express-mysql-session')(session);
+var compression = require('compression')
+
 
 var jsonfile = require('jsonfile')
 var file = 'conf.json'
@@ -21,8 +23,21 @@ var pool = mysql.createPool( poolSpec );
 var express = require('express');
 var app = express();
 
+function shouldCompress (req, res) {
+  if (req.headers['x-no-compression']) {
+    // don't compress responses with this request header
+    return false
+  }
+
+  // fallback to standard filter function
+  let r = compression.filter(req, res);
+  console.log("r=" + r);
+  return r;
+}
+
 var sessionConf = conf.sessionConf;
 sessionConf.store = new MySQLStore({}, pool);
+app.use(compression({filter: shouldCompress}))
 app.use(session( sessionConf ));
 
 // Authentication and Authorization Middleware
@@ -229,6 +244,9 @@ app.get('/allData',
                       processed++;
                       //console.log(`processed=${processed} outerRows.length=${outerRows.length}`);
                       if( processed == outerRows.length) {
+                        res.writeHead(200, {
+                          "Content-Type": "application/json"
+                        });
                         res.end( JSON.stringify(retList) );
                       }
                     }
@@ -318,7 +336,10 @@ function addDailyByName(name, res){
 app.get('/memo/:code', (req,res) => {
   let code = req.params.code;
   pool.query("select name, code from tbl_code where code=?", [code], (sqlerr1, sqlres1) =>{
-    pool.query("select m.memo as memo, m.author as author, m.ts as ts, u.color as color from tbl_memo m, tbl_user u where m.code = ? and u.username = m.author order by m.ts desc", [code], (sqlerr, sqlres) =>{
+    pool.query("select m.topTs as topTs, m.id as id, m.memo as memo, m.author as author, m.ts as ts, u.color as color from tbl_memo m, tbl_user u where m.code = ? and u.username = m.author order by m.ts desc", [code], (sqlerr, sqlres) =>{
+      res.writeHead(200, {
+          "Content-Type": "application/json"
+      });
       res.end(JSON.stringify({
        code,
        name: sqlres1[0].name,
@@ -333,6 +354,9 @@ app.get('/latestMemo', (req,res) => {
     if(sqlerr != undefined ) {
       res.end(JSON.stringify(sqlerr));
     }else{
+      res.writeHead(200, {
+        "Content-Type": "application/json"
+      });
       res.end(JSON.stringify(
        sqlres
       ));
@@ -355,6 +379,33 @@ app.put('/memo/:code', (req,res) => {
 
 });
 
+
+app.get('/setTop/:id', (req,res) => {
+  let memoId = req.params.id;
+  let now = new Date().getTime();
+  console.log(`set top memoId=${memoId}`);
+  pool.query("update tbl_memo set topTs = FROM_UNIXTIME(?) where id=? ", [now / 1000, memoId], (sqlerr, sqlres) =>{
+    if( sqlerr == undefined) {
+      res.end("done");  
+    }else{
+      res.end(JSON.stringify(sqlerr));
+    }
+  });
+});
+
+app.get('/unsetTop/:id', (req,res) => {
+  let memoId = req.params.id;
+  let now = new Date().getTime();
+  console.log(`set top memoId=${memoId}`);
+  pool.query("update tbl_memo set topTs = null where id=? ", [memoId], (sqlerr, sqlres) =>{
+    if( sqlerr == undefined) {
+      res.end("done");  
+    }else{
+      res.end(JSON.stringify(sqlerr));
+    }
+  });
+});
+
 app.get('/daily/:code', (req,res) => {
   let code = req.params.code;
   console.log(`code=${code}`);
@@ -364,6 +415,9 @@ app.get('/daily/:code', (req,res) => {
     [ code, dt],
     (sqlerr, sqlres) => {
       if( sqlerr == undefined) {
+        res.writeHead(200, {
+          "Content-Type": "application/json"
+        });
         res.end( JSON.stringify(sqlres) );    
       }else{
         res.end("error " + JSON.stringify(sqlerr) );

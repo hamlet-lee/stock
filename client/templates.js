@@ -5,6 +5,7 @@ templates["stockMemoHead"] = [
   '<a href="#">返回</a>',
   '</p>',
   '<p class="h2"><%- name %> (<%- code %>) </p>',
+  '<p class="topMemo"></p>',
   '<p class="kchart"></p>',
   '<p class="memo-links">',
     '<a class="icon" href=<%- wencaiUrls["基本情况"]%>>基本情况</a>',
@@ -16,9 +17,13 @@ templates["stockMemoHead"] = [
 .join("\n");
 
 templates["stockMemoItem"] = [
-  '<div class="memo-item">',
+  '<div data-memoid="<%- memo.id %>" class="memo-item">',
     '<span class="memo-author" style="color:<%- memo.color %>"><%- memo.author%><span class="memo-date"> <%- new Date(memo.ts).format("MM月dd日") %></span>：</span>',
-    '<%- memo.memo %>',
+    '<%- memo.memo %> <% if( memo.topTs == undefined ){ %>',
+      '<a href="#" class="setTop">置顶</a>',
+      '<%}else{%>',
+      '<a href="#" class="unsetTop">取消置顶</a>',
+      '<%}%>'
     ,
   '</div>'
 ].join("\n");
