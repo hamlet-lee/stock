@@ -52,38 +52,39 @@ function kchart(elem, title, dtList, kList, amountList){
                 boundaryGap: [0.01, 0.01],
                 name: "价格",
                 z: 1
-            },
-            {
-                type : 'value',
-                scale:true,
-                boundaryGap: [0.01, 0.01],
-                name: "成交量",
-                z: 0
             }
+            // ,
+            // {
+            //     type : 'value',
+            //     scale:true,
+            //     boundaryGap: [0.01, 0.01],
+            //     name: "成交量",
+            //     z: 0
+            // }
         ],
         series : [
-            {
-                name: title,
-                type: 'k',
-                data: kList // 开盘，收盘，最低，最高
-            }
-            ,
-            {
-                name: title + "成交量",
-                type: 'bar',
-                data: amountList,
-                yAxisIndex: 1,
-                itemStyle: {
-                normal: {
-                    color: 'gray',
-                    label: {
-                        //show: true,
-                        //position: 'top',
-                        //formatter: '{b}\n{c}'
-                    }
+                {
+                    name: title,
+                    type: 'k',
+                    data: kList // 开盘，收盘，最低，最高
                 }
-            }
-            }
+                // ,
+                // {
+                //     name: title + "成交量",
+                //     type: 'line',
+                //     data: amountList,
+                //     yAxisIndex: 1,
+                //     itemStyle: {
+                //     normal: {
+                //         color: 'gray',
+                //         label: {
+                //             //show: true,
+                //             //position: 'top',
+                //             //formatter: '{b}\n{c}'
+                //         }
+                //     }
+                // }
+                // }
         ]
     };
 
