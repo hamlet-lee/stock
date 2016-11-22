@@ -3,7 +3,7 @@ $(function(){
   function foundConflict(poss, p){
     let found = false;
     poss.forEach( (pos) => {
-      if( Math.abs( pos.left - p.left ) < 15 && Math.abs(pos.top - p.top ) < 25 ){
+      if( Math.abs( pos.left - p.left ) < 20 && Math.abs(pos.top - p.top ) < 25 ){
         found = true;
       }
     });
@@ -27,14 +27,22 @@ $(function(){
     let dayUnit = $("#screen").width() / (maxToLow + maxToHigh);
 
     var poss = [];
+    var leftMap = {};
+    var pos = 0;
+    var elemList = [];
     data.forEach( (d) => {
       let $n = $(_.template(templates.stockBlock, {d}) );
-      
-      let left = (d.sign<0? d.toHigh*dayUnit: (d.toLow+maxToHigh)*dayUnit) ;
+        
+      let left;
+      if (d.sign<0){
+        left = d.toHigh * dayUnit;
+      }else{
+        left = (d.toLow + maxToHigh) * dayUnit ;
+      }
       //let left = ww + d.sign * d.level * ww ;
       let top = hh - d.level * hh;
       while( foundConflict(poss, {left, top}) ){
-        left += 100;
+        left += 10;
       }
       poss.push({left, top});
       $n.css({ left, top });
@@ -51,7 +59,7 @@ $(function(){
         });
         $n.find(".volBarLow").css("background-color", "red");
       }
-      
+
       let lowPart = (d.volLevel - d.minVolLevel) / (d.maxVolLevel - d.minVolLevel);
       let highPart = 1 - lowPart;
       $n.find(".volBarHigh").css("flex", Math.round(highPart * 10));
@@ -61,9 +69,31 @@ $(function(){
       let c = "rgb("+k+",255,255)";
       console.log(c);
       $n.css("background-color", c);
-      $screen.append($n); 
+      $screen.append($n);
+      leftMap[pos] = left;
+      elemList.push($n);
+      pos++;
     });
-    $screen.append();
+
+    var posList = [];
+    for( var i=0; i<pos; i++ ){
+      posList[i] = i;
+    }
+
+    posList = posList.sort( (a,b) => {
+      if( leftMap[a] < leftMap[b]) {
+        return -1;
+      }else if( leftMap[a] > leftMap[b]) {
+        return 1;
+      }else {
+        return 0;
+      }
+    });
+
+    for( var i=0; i<pos; i++ ) {
+      elemList[ posList[i] ].css("z-index", i);
+    }
+    //$screen.append();
   }
 
   function drawLatestMemo(data){

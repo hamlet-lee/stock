@@ -31,7 +31,7 @@ function shouldCompress (req, res) {
 
   // fallback to standard filter function
   let r = compression.filter(req, res);
-  console.log("r=" + r);
+  //console.log("r=" + r);
   return r;
 }
 
@@ -223,21 +223,68 @@ app.get('/updateStockList',
   }
 );
 
+function fuquan(lines, code){
+  let k = 10; //做个保护，避免bug死循环
+  // if( code == '603012') {
+  //   console.log(lines);  
+  // }
+    
+  let foundFuquanDian = false;
+  do{
+    foundFuquanDian = false;
+    for(let i=lines.length-1; i>0; i--) {
+      // if( code == '603012') {
+      //   console.log(lines[i]);  
+      // }
+      let openToday = lines[i].open;
+      let closeYesterday = lines[i-1].close;
+      // if( code == '603012') {
+      //   console.log(`openToday = ${openToday} closeYesterday = ${closeYesterday}`);  
+      // }
+      //股价波动过大，应该发生了除权
+      let r = (closeYesterday-openToday) / closeYesterday;
+
+      if( r > 0.12 ) {
+        console.log(`found fuquandian ${lines[i].date} for ${code}`)
+        let ratio = (openToday * 1.0/ closeYesterday);
+        
+        //找到了复权点
+        foundFuquanDian = true;
+
+        //将该日期之前的价格都做复权处理
+        for( let j=i-1; j>=0; j--) {
+          lines[j].open *= ratio;
+          lines[j].close *= ratio;
+          lines[j].high *= ratio;
+          lines[j].low *= ratio;
+          lines[j].volume /= ratio;
+        }
+        break;
+      }
+    }
+  }while(k-- >= 0 && foundFuquanDian == true);
+}
+
 app.get('/allData', 
   function (req, res){
     pool.query( "SELECT DISTINCT(CONCAT(c.code , ',', c.name)) AS code_name FROM tbl_daily d, tbl_code c WHERE c.code = d.code", function (err, outerRows){
       let retList = [];
       let processed = 0;
+      let doFuquan = true;
       var now = new Date().getTime();
       var dt = getDate(now - 1000 * 60 * 60 * 24 * 180);  //half year
       console.log("from dt = " + dt);
       outerRows.forEach( row => {
         let [code,name] = row.code_name.split(",");
-        pool.query( "select high, low, close, volume from tbl_daily where code = ? and date > ? order by date asc", 
+        pool.query( "select date, open, high, low, close, volume from tbl_daily where code = ? and date > ? order by date asc", 
                     [ code, dt ],
                     (err, rows) => {
                       //console.log(err);
                       //console.log(rows);
+                      if( doFuquan ) {
+                        //console.log("fuquaning for code " + code);
+                        fuquan(rows, code);
+                      }
                       var stkResult = genStk(code, rows);
                       stkResult.name = name;
                       retList.push ( stkResult );
@@ -257,9 +304,36 @@ app.get('/allData',
   }
 );
 
+function getMarket(code){
+  var c = code.substring(0,1);
+  if( c == "0" || c == "2" || c == "3") {
+    return "sz";
+  }else{
+    return "sh";
+  }
+}
 function updateDaily(code, backDays = 180){
   console.log(`updating code=${code}`);
   var now = new Date().getTime();
+
+  //复权价格数据
+  var urlFuquan = format( conf.stockFuquanUrl, { market: getMarket(code), code});
+  request(urlFuquan, function(error, response, body) {
+    body = body.replace(/\/\*.*\*\//, "");
+    var r;
+    var reg = /_(\d{4})_(\d{2})_(\d{2}):"([^"]+)"/g;
+    while( r = reg.exec(body)){
+      console.log(`parsed: ${r[1]} ${r[2]} ${r[3]} ${r[4]}`);
+      let dt = `${r[1]}-${r[2]}-${r[3]}`;
+      let fPrice = r[4];
+      pool.query("insert into tbl_fuquan(code, date, fPrice) values(?,?,?)", [code, dt, fPrice], (serr, sres) =>{
+        if( serr != null) {
+          console.log("serr=" + serr);
+        }
+      });
+    }
+  });
+
   for( var k = -backDays; k <= 0; k+= 50){
     var end_date = getDate(now);
     var s = now + 1000 * 60 * 60 * 24 * k;
@@ -269,6 +343,8 @@ function updateDaily(code, backDays = 180){
       code, start_date, end_date
     });
     console.log("url="+url);
+
+    //日线数据
     request(url, function (error, response, body) {
                   if (!error && response.statusCode == 200) {
                     var d = JSON.parse(body);
@@ -415,6 +491,7 @@ app.get('/daily/:code', (req,res) => {
     [ code, dt],
     (sqlerr, sqlres) => {
       if( sqlerr == undefined) {
+        fuquan(sqlres, code);
         res.writeHead(200, {
           "Content-Type": "application/json"
         });
