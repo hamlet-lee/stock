@@ -328,7 +328,8 @@ function updateDaily(code, backDays = 180){
       let fPrice = r[4];
       pool.query("insert into tbl_fuquan(code, date, fPrice) values(?,?,?)", [code, dt, fPrice], (serr, sres) =>{
         if( serr != null) {
-          console.log("serr=" + serr);
+          //should update
+          pool.query("update tbl_fuquan set fPrice=? where code=? and date=?", [fPrice, code, dt]);
         }
       });
     }
