@@ -393,7 +393,17 @@ new CronJob('0 7 18 * * 1-5', function() {
   console.log('update daily status');
   
   pool.query( "SELECT DISTINCT(code) AS code FROM tbl_daily d", (err, outerRows) => {
-    outerRows.forEach( r => updateDaily(r.code, x) );
+    //outerRows.forEach( r => updateDaily(r.code, x) );
+    let hInterval = 0;
+    let pos = 0;
+    hInterval = setInterval( () => {
+      let code = outerRows[pos++].code;
+      console.log("updating code " + code);
+      updateDaily(code, x);
+      if( pos >= outerRows.length) {
+        clearInterval(hInterval);
+      }
+    }, 10000);
   });
    
 }, null, true, 'Asia/Shanghai');
