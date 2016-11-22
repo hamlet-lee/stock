@@ -7,5 +7,12 @@
     "database" : "stock",
     "charset" : "UTF8_GENERAL_CI"
   },
-  "stockListUrl": "http://.../stocklist.html",  "stockDailyUrl": "http://.../{code}?from={start_date}&to={end_date}" 
+  "stockListUrl": "http://.../stocklist.html",
+  "stockDailyUrl": "http://.../{code}?from={start_date}&to={end_date}",
+  "stockFuquanUrl": "http://...{market}{code}...",
+  "sessionConf": {
+    "secret": "xxx",
+    "resave": true,
+    "saveUninitialized": true
+  }
 }
