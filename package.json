@@ -21,6 +21,7 @@
     "iconv-lite": "^0.4.13",
     "jsonfile": "^2.4.0",
     "multer": "^1.2.0",
-    "string-template": "^1.0.0"
+    "string-template": "^1.0.0",
+    "underscore": "^1.8.3"
   }
 }
