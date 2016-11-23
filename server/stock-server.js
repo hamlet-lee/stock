@@ -9,7 +9,7 @@ var session = require('express-session');
 var crypto = require('crypto');
 var MySQLStore = require('express-mysql-session')(session);
 var compression = require('compression')
-
+var _und = require('underscore');
 
 var jsonfile = require('jsonfile')
 var file = 'conf.json'
@@ -265,6 +265,38 @@ function fuquan(lines, code){
   }while(k-- >= 0 && foundFuquanDian == true);
 }
 
+app.get('/updateProgress', (req, res) => {
+  pool.query("SELECT DISTINCT(code) from tbl_daily", (serr, sres) => {
+    let count = sres.length;
+    var now = new Date().getTime() - 1000 * 60 * 60 * 8; //8 hours
+    var dt = getDate(now);
+    res.writeHead(200, {
+      "Content-Type": "application/json"
+    });
+    if( serr == undefined ) {
+      pool.query("SELECT DISTINCT(code) from tbl_daily where date = ?", [dt], (serr2, sres2) => {
+        if( serr2 == undefined ) {
+          res.end(JSON.stringify({
+            status: "OK",
+            count,
+            updated: sres2.length
+          }));
+        }else{
+          res.end(JSON.stringify({
+            status: "ERROR",
+            msg: JSON.stringify(serr2)
+          }));
+        }
+      });
+    }else{
+      res.end(JSON.stringify({
+        msg: JSON.stringify(serr),
+        status: "ERROR"
+      }));
+    }
+  })
+});
+
 app.get('/allData', 
   function (req, res){
     pool.query( "SELECT DISTINCT(CONCAT(c.code , ',', c.name)) AS code_name FROM tbl_daily d, tbl_code c WHERE c.code = d.code", function (err, outerRows){
@@ -322,17 +354,21 @@ function updateDaily(code, backDays = 180){
     body = body.replace(/\/\*.*\*\//, "");
     var r;
     var reg = /_(\d{4})_(\d{2})_(\d{2}):"([^"]+)"/g;
+    var data = [];
     while( r = reg.exec(body)){
-      console.log(`parsed: ${r[1]} ${r[2]} ${r[3]} ${r[4]}`);
+      //console.log(`parsed: ${r[1]} ${r[2]} ${r[3]} ${r[4]}`);
       let dt = `${r[1]}-${r[2]}-${r[3]}`;
       let fPrice = r[4];
-      pool.query("insert into tbl_fuquan(code, date, fPrice) values(?,?,?)", [code, dt, fPrice], (serr, sres) =>{
-        if( serr != null) {
-          //should update
-          pool.query("update tbl_fuquan set fPrice=? where code=? and date=?", [fPrice, code, dt]);
-        }
-      });
+      // pool.query("insert into tbl_fuquan(code, date, fPrice) values(?,?,?)", [code, dt, fPrice], (serr, sres) =>{
+      //   if( serr != null) {
+      //     //should update
+      //     pool.query("update tbl_fuquan set fPrice=? where code=? and date=?", [fPrice, code, dt]);
+      //   }
+      // });
+      data.push([code, dt, fPrice]);
     }
+    pool.query("delete from tbl_fuquan where code=?", [code]);
+    pool.query("insert into tbl_fuquan(code, date, fPrice) values ?", [data]);
   });
 
   for( var k = -backDays; k <= 0; k+= 50){
@@ -347,65 +383,75 @@ function updateDaily(code, backDays = 180){
 
     //日线数据
     request(url, function (error, response, body) {
-                  if (!error && response.statusCode == 200) {
-                    var d = JSON.parse(body);
-                    if( d.data ){
-                      d.data.forEach(
-                        function(t){
-                          var sql = "insert into tbl_daily (code, date, high, low, open, close, volume, amount) values (?, ?, ?, ? ,? ,? , ?, ?)";
-                          pool.query(sql, [code, t.date, t.high * 100, t.low * 100, t.open * 100, t.close * 100, t.volume, t.amount], (serr, sres) =>{
-                            if( serr != null ) {
-                              //should update
-                              let sql_update = "update tbl_daily set high=?, low=?, open=?, close=?, volume=?, amount=? where code=? and date=? "
-                              pool.query(sql_update, [t.high * 100, t.low * 100, t.open * 100, t.close * 100,  t.volume, t.amount, code, t.date ]);
-                            }else{
-                              //nothing to do
-                            }
-                          });
-                      });
-                    }                  }
-                    console.log(body);
+      if (!error && response.statusCode == 200) {
+        var d = JSON.parse(body);
+        if( d.data ){
+          d.data.forEach(
+            function(t){
+              var sql = "insert into tbl_daily (code, date, high, low, open, close, volume, amount) values (?, ?, ?, ? ,? ,? , ?, ?)";
+              pool.query(sql, [code, t.date, t.high * 100, t.low * 100, t.open * 100, t.close * 100, t.volume, t.amount], (serr, sres) =>{
+                if( serr != null ) {
+                  //should update
+                  let sql_update = "update tbl_daily set high=?, low=?, open=?, close=?, volume=?, amount=? where code=? and date=? "
+                  pool.query(sql_update, [t.high * 100, t.low * 100, t.open * 100, t.close * 100,  t.volume, t.amount, code, t.date ]);
+                }else{
+                  //nothing to do
                 }
-    );
+              });
+          });
+        }
+      }
+      console.log(body);
+    });
   }
 }
 
-app.get("/updateAll", (req, res) =>{
-  console.log('update long term daily status');
-  
-  //pool.query( "SELECT DISTINCT(code) AS code FROM tbl_daily d", (err, outerRows) => {
-  pool.query( "SELECT distinct(code) FROM stock.tbl_daily where open is null", (err, outerRows) => {
-    let hInterval = 0;
-    let pos = 0;
-    hInterval = setInterval( () => {
-      let code = outerRows[pos++].code;
-      console.log("updating code " + code);
-      updateDaily(code);
-      if( pos >= outerRows.length) {
-        clearInterval(hInterval);
-      }
-    }, 10000);
+
+function updateAll(days){
+  var updatedCodeList = [];
+  var now = new Date().getTime() - 1000*60*60*8; // 8 hours
+  var dt = getDate(now);
+  pool.query( "SELECT distinct(code) as code FROM stock.tbl_daily where date = ?", [dt], (serr, sres) => {
+    sres.forEach( c => {
+      updatedCodeList.push(c.code);
+    });
+
+    console.log("updatedCodeList=" + updatedCodeList);
+
+    pool.query( "SELECT DISTINCT(code) AS code FROM tbl_daily d", (err, outerRows) => {
+    //pool.query( "SELECT distinct(code) FROM stock.tbl_daily where open is null", (err, outerRows) => {
+      let hInterval = 0;
+      let pos = 0;
+      let toUpdate = _und.filter( outerRows, r => !_und.contains(updatedCodeList, r.code));
+      let toUpdateCodeList = _und.map( toUpdate, r => r.code);
+      console.log("toUpdateCodeList=" + toUpdateCodeList);
+      hInterval = setInterval( () => {
+        let code = toUpdate[pos++].code;
+        if( _und.contains(updatedCodeList, code) ) {
+          console.log("skip updated code " + code);
+        }else{
+          console.log("updating code " + code);
+          updateDaily(code, days);
+          if( pos >= toUpdate.length) {
+            clearInterval(hInterval);
+          }
+        }
+      }, 30000);
+    });    
   });
+}
+
+app.get("/updateAll/:days", (req, res) =>{
+  console.log('update long term daily status');
+  var days = req.params.days;
+  updateAll(days);  
+  res.end("running");
 });
 
-new CronJob('0 7 18 * * 1-5', function() {
+new CronJob('0 5 18-19 * * 1-5', function() {
   let x = 5;
   console.log('update daily status');
-  
-  pool.query( "SELECT DISTINCT(code) AS code FROM tbl_daily d", (err, outerRows) => {
-    //outerRows.forEach( r => updateDaily(r.code, x) );
-    let hInterval = 0;
-    let pos = 0;
-    hInterval = setInterval( () => {
-      let code = outerRows[pos++].code;
-      console.log("updating code " + code);
-      updateDaily(code, x);
-      if( pos >= outerRows.length) {
-        clearInterval(hInterval);
-      }
-    }, 10000);
-  });
-   
+  updateAll(x);
 }, null, true, 'Asia/Shanghai');
 
 

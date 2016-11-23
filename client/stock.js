@@ -249,6 +249,23 @@ $(function(){
       error: (e) => alert(JSON.stringify(e))
     });
   });
+
+  $.ajax({
+    url: "/updateProgress",
+    method: "GET",
+    success: function(data){
+      if( data.status == "ERROR" ) {
+        $("#status").text("当日数据更新进度: 【查询出错：" + data.msg + "】");
+      }else{
+        if( data.updated < data.count) {
+          $("#status").text("当日数据更新进度: " + data.updated + "/" + data.count);
+        }else{
+          $("#status").text("当日数据已更新完毕，股票数量：" + data.count);
+        }
+      }
+    }
+  });
+  
 });
 
 
