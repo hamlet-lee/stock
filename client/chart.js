@@ -13,6 +13,7 @@ function kchart(elem, title, dtList, kList, amountList){
                 var res = params[0].seriesName + ' ' + params[0].name;
                 res += '<br/>  开盘 : ' + params[0].value[0] + '  最高 : ' + params[0].value[3];
                 res += '<br/>  收盘 : ' + params[0].value[1] + '  最低 : ' + params[0].value[2];
+                res += '<br/>  当日振幅 : ' + ((params[0].value[3] - params[0].value[2]) / params[0].value[0] * 100 ).toFixed(2) + '%'
                 return res;
             }
         },
