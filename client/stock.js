@@ -221,7 +221,7 @@ $(function(){
       method: "put",
       data: {code, memo},
       success: () => {
-        alert('done');
+        alert('成功！F5刷新后能看到。');
         $(e.target).closest(".add-memo").find(".myMemo").val("");
       },
       error: (e) => alert( JSON.stringify(e))
