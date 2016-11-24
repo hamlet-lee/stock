@@ -432,10 +432,10 @@ function updateAll(days){
       let toUpdateCodeList = _und.map( toUpdate, r => r.code);
       console.log("toUpdateCodeList=" + toUpdateCodeList);
       hInterval = setInterval( () => {
-        let code = toUpdate[pos++].code;
+        let code = toUpdateCodeList[pos++];
         console.log("updating code " + code);
         updateDaily(code, days);
-        if( pos >= toUpdate.length) {
+        if( pos >= toUpdateCodeList.length) {
           clearInterval(hInterval);
         }
       }, 30000);
