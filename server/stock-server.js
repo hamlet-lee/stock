@@ -91,6 +91,11 @@ function getDate(now){
   return dateFormat(now,'yyyy-mm-dd');
 }
 
+function getDateTime(now){
+  return dateFormat(now,'isoDateTime');
+}
+
+
 function genStk( code, rows ){
   //console.log(`code=${code}`);
   let maxVol = Math.max.apply(null, rows.map( r => r.volume ));
@@ -448,8 +453,10 @@ app.get("/updateAll/:days", (req, res) =>{
   res.end("running");
 });
 
-new CronJob('0 5 18-19 * * 1-5', function() {
+new CronJob('0 5 18-23 * * 1-5', function() {
   let x = 5;
+  var now = new Date();
+  console.log(getDateTime(now));
   console.log('update daily status');
   updateAll(x);
 }, null, true, 'Asia/Shanghai');

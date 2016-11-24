@@ -220,7 +220,10 @@ $(function(){
       url: "/memo/" + code,
       method: "put",
       data: {code, memo},
-      success: () => alert('done'),
+      success: () => {
+        alert('done');
+        $(e.target).closest(".add-memo").find(".myMemo").val("");
+      },
       error: (e) => alert( JSON.stringify(e))
     });
   });
