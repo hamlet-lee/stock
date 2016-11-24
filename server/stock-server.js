@@ -413,6 +413,7 @@ function updateDaily(code, backDays = 180){
 
 
 function updateAll(days){
+  console.log("updateAll " + getDateTime(now));
   var updatedCodeList = [];
   var now = new Date().getTime() - 1000*60*60*8; // 8 hours
   var dt = getDate(now);
@@ -456,7 +457,6 @@ app.get("/updateAll/:days", (req, res) =>{
 new CronJob('0 5 18-23 * * 1-5', function() {
   let x = 5;
   var now = new Date();
-  console.log(getDateTime(now));
   console.log('update daily status');
   updateAll(x);
 }, null, true, 'Asia/Shanghai');
