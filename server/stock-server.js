@@ -433,14 +433,10 @@ function updateAll(days){
       console.log("toUpdateCodeList=" + toUpdateCodeList);
       hInterval = setInterval( () => {
         let code = toUpdate[pos++].code;
-        if( _und.contains(updatedCodeList, code) ) {
-          console.log("skip updated code " + code);
-        }else{
-          console.log("updating code " + code);
-          updateDaily(code, days);
-          if( pos >= toUpdate.length) {
-            clearInterval(hInterval);
-          }
+        console.log("updating code " + code);
+        updateDaily(code, days);
+        if( pos >= toUpdate.length) {
+          clearInterval(hInterval);
         }
       }, 30000);
     });    
