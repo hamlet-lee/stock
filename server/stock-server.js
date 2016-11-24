@@ -413,10 +413,10 @@ function updateDaily(code, backDays = 180){
 
 
 function updateAll(days){
-  console.log("updateAll " + getDateTime(now));
   var updatedCodeList = [];
   var now = new Date().getTime() - 1000*60*60*8; // 8 hours
   var dt = getDate(now);
+  console.log("updateAll " + getDateTime(new Date()) + " for " + dt);
   pool.query( "SELECT distinct(code) as code FROM stock.tbl_daily where date = ?", [dt], (serr, sres) => {
     sres.forEach( c => {
       updatedCodeList.push(c.code);
