@@ -450,7 +450,7 @@ app.get("/updateAll/:days", (req, res) =>{
   res.end("running");
 });
 
-new CronJob('0 5 18-23 * * 1-5', function() {
+new CronJob('0 5 19-21 * * 1-5', function() {
   let x = 5;
   var now = new Date();
   console.log('update daily status');
